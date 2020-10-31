@@ -1,0 +1,12 @@
+* midikbd
+
+A program that transforms a evdev keyboard (ASCII) into a MIDI keyboard.
+
+** Example
+
+Check available devices with =xinput=. If your keyboard's ID is 9, and
+you want to open MIDI input =My MIDI Keyboard=, simply run:
+
+#+BEGIN_SRC sh
+midikbd 9 "My MIDI Keyboard"
+#+END_SRC
