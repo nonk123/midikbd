@@ -28,4 +28,4 @@ aconnect 129 130
 #+END_SRC
 
 Try pressing some keys on device 9. It should produce sound. If the
-program grabbed your only keyboard, well, back luck; kill it from a TTY.
+program grabbed your only keyboard, well, bad luck; kill it from a TTY.

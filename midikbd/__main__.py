@@ -29,9 +29,17 @@ def main():
                                 xinput.GrabModeAsync, xinput.GrabModeAsync, True,
                                 xinput.KeyPressMask | xinput.KeyReleaseMask)
 
-        held = False
+        print("Grabbed device", device_id)
 
-        with mido.open_ioport(sys.argv[2], virtual=True) as midi_port:
+        held_keys = {}
+
+        def is_held(keycode):
+            return keycode in held_keys and held_keys[keycode]
+
+        with mido.open_output(sys.argv[2], virtual=True) as midi_port:
+            print(f'Output "{midi_port.name}" open')
+            print("Press ^C to exit (works globally)")
+
             while True:
                 event = display.next_event()
 
@@ -40,13 +48,24 @@ def main():
 
                 keycode = event.data.detail
 
+                # ^C detection.
+                if (is_held(37) or is_held(109)) and keycode == 54:
+                    break
+
                 # Hold the note until the key is released.
-                if event.evtype == xinput.KeyPress and not held:
-                    midi_port.send(mido.Message("note_on", note=keycode))
-                    held = True
+                if event.evtype == xinput.KeyPress and not is_held(keycode):
+                    message = mido.Message("note_on")
+                    held_keys[keycode] = True
                 elif event.evtype == xinput.KeyRelease:
-                    midi_port.send(mido.Message("note_off", note=keycode))
-                    held = False
+                    message = mido.Message("note_off")
+                    held_keys[keycode] = False
+                else:
+                    continue
+
+                message.note = keycode
+                midi_port.send(message)
+
+            print("Goodbye")
     except Exception as err:
         print("Error: ", err, "\n", sep="")
         print_usage()
