@@ -1,7 +1,7 @@
 import sys
+import os
 
 from Xlib.display import Display
-from Xlib.XK import string_to_keysym
 from Xlib.ext import xinput, ge
 from Xlib import X
 
@@ -11,8 +11,8 @@ def print_usage():
     print("Usage:")
     print("  midikbd <device_id> <port_name>\n")
     print("Where:")
-    print("  <device_id> - keyboard device ID from `xinput`")
-    print("  <port_name> - the name of the virtual port to be created")
+    print("  device_id - keyboard device ID from `xinput`")
+    print("  port_name - the name of the virtual port to be created")
 
 def main():
     display = Display()
@@ -40,6 +40,11 @@ def main():
             print(f'Output "{midi_port.name}" open')
             print("Press ^C to exit (works globally)")
 
+            new_pid = os.fork()
+
+            if new_pid != 0:
+                return
+
             while True:
                 event = display.next_event()
 
@@ -62,10 +67,10 @@ def main():
                 else:
                     continue
 
-                message.note = keycode
-                midi_port.send(message)
-
-            print("Goodbye")
+                # Ignore notes out of range.
+                if keycode >= 0 and keycode <= 127:
+                    message.note = keycode
+                    midi_port.send(message)
     except Exception as err:
         print("Error: ", err, "\n", sep="")
         print_usage()
