@@ -1,12 +1,31 @@
 * midikbd
 
-A program that transforms a evdev keyboard (ASCII) into a MIDI keyboard.
+A program that transforms an xinput keyboard (ASCII) into a MIDI
+keyboard.
+
+As of now, it simply grabs the entire keyboard and translates keycodes
+directly into MIDI notes.
 
 ** Example
 
 Check available devices with =xinput=. If your keyboard's ID is 9, and
-you want to open MIDI input =My MIDI Keyboard=, simply run:
+you'd like to create MIDI port "Hello there!", run:
 
 #+BEGIN_SRC sh
-midikbd 9 "My MIDI Keyboard"
+midikbd 9 "Hello there!"
 #+END_SRC
+
+Now, run =aconnect -i -l= to see the available input devices. Remember
+the client number of =Hello there!=. Let's say it's 129.
+
+Run =aconnect -o -l= to see the list of output devices. Let's say we're
+looking for =FLUID Synth=, and its client number is 130.
+
+Connect the input and output together:
+
+#+BEGIN_SRC sh
+aconnect 129 130
+#+END_SRC
+
+Try pressing some keys on device 9. It should produce sound. If the
+program grabbed your only keyboard, well, back luck; kill it from a TTY.
