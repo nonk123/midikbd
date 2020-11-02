@@ -22,10 +22,11 @@ def print_usage():
 
 def parse_args():
     try:
-        assert len(sys.argv) == 4
+        if len(sys.argv) != 4:
+            raise Exception("Provide 3 arguments")
         return (int(sys.argv[1]), sys.argv[2], int(sys.argv[3]))
     except Exception as err:
-        print("Error ", type(err), ": ", err, "\n", sep="")
+        print(type(err).__name__, ": ", err, "\n", sep="")
         print_usage()
         sys.exit(1)
 
