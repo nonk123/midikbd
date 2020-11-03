@@ -82,24 +82,26 @@ def main():
                 continue
 
             # Most likely not portable, but that's not an issue yet.
-            # On en_US layout, these are the keys Q-], A-\, and Z-/
+            # On en_US layout, these are the keys 1-=, Q-], A-\, and Z-/
             # The ranges are inclusive, hence the "+1".
 
-            if keycode in range(24, 35 + 1):
+            if keycode in range(10, 21 + 1):
                 # Difference from root note.
-                # Q = root note, so 24 - 24 = 0.
-                note = keycode - 24
+                # 1 = root note, so 10 - 10 = 0.
+                note = keycode - 10
+            elif keycode in range(24, 35 + 1):
+                # Compensate for 21-24 transition.
+                note = keycode - 10 - 2
             elif keycode in range(38, 48 + 1):
-                # Compensate for 35-38 transition.
-                note = keycode - 24 - 2
+                # 21-24 and 35-38 transition.
+                note = keycode - 10 - 2 - 2
             elif keycode in range(51, 61 + 1):
-                # 35-38 and 48-51 transition.
-                note = keycode - 24 - 2 - 2
+                # 21-24, 35-38, and 48-51 transition.
+                note = keycode - 10 - 2 - 2 - 2
             else:
                 continue
 
             message.note = note + root_note
-            message.velocity = 127 # too quiet otherwise
 
             midi_port.send(message)
 
