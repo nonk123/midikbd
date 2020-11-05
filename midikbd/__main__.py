@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 from Xlib.display import Display
 from Xlib.ext import xinput, ge
@@ -12,28 +12,27 @@ def midi_note_to_string(midi):
     # I have absolutely no idea how this works, but it does.
     return names[midi % 12] + str((midi - 12) // 12)
 
-def print_usage():
-    print("Usage:")
-    print("  midikbd <device_id> <port_name> <root_note>\n")
-    print("Where:")
-    print("  device_id - keyboard device ID from `xinput`")
-    print("  port_name - the name of the virtual port to be created")
-    print("  root_note - MIDI note number the lowest note is assigned")
-
 def parse_args():
-    try:
-        if len(sys.argv) != 4:
-            raise Exception("Provide 3 arguments")
-        return (int(sys.argv[1]), sys.argv[2], int(sys.argv[3]))
-    except Exception as err:
-        print(type(err).__name__, ": ", err, "\n", sep="")
-        print_usage()
-        sys.exit(1)
+    description = "Use XInput device as MIDI keyboard."
+    parser = argparse.ArgumentParser(description=description)
+
+    default_root_note = 36
+    help = f"MIDI note number of the lowest note (default: {midi_note_to_string(default_root_note)})"
+
+    parser.add_argument("-r", "--root_note", type=int, default=default_root_note,
+                        help=help)
+
+    parser.add_argument("device_id", type=int,
+                        help="XInput device ID from `xinput`")
+    parser.add_argument("midi_port", type=str,
+                        help="name of the MIDI port to be created")
+
+    return parser.parse_args()
 
 def main():
-    device_id, port_name, root_note = parse_args()
+    args = parse_args()
 
-    print("Root note:", midi_note_to_string(root_note))
+    print("Root note:", midi_note_to_string(args.root_note))
 
     held_keys = {}
 
@@ -48,14 +47,14 @@ def main():
         async_ = xinput.GrabModeAsync
         mask = xinput.KeyPressMask | xinput.KeyReleaseMask
 
-        root.xinput_grab_device(device_id, time, async_, async_, True, mask)
+        root.xinput_grab_device(args.device_id, time, async_, async_, True, mask)
 
-    midi_port = mido.open_output(sys.argv[2], virtual=True)
+    midi_port = mido.open_output(args.midi_port, virtual=True)
     print(f'Output "{midi_port.name}" open')
 
     with midi_port:
         establish_grab()
-        print("Grabbed device", device_id)
+        print("Grabbed device", args.device_id)
         print("Press ^C to exit (on grabbed device)")
 
         while True:
@@ -101,7 +100,7 @@ def main():
             else:
                 continue
 
-            message.note = note + root_note
+            message.note = note + args.root_note
 
             midi_port.send(message)
 
